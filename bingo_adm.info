@@ -1,0 +1,6 @@
+name = Bingo Adm
+description = Bingo Adm.
+package = Bingo
+core = 7.x
+files[] = bingo_adm.module
+version = 1.0
