@@ -48,66 +48,43 @@ function bingo_adm_page() {
        }
     }
 
+    
+
     $form = drupal_get_form('game_devices_form');
     $output = drupal_render($form);
-    return $output . game_devices_table(); 
+
+    return $output .  game_devices_table();
    // return get_list();
 
 
   }
   
  function game_devices_table() {
-  global $base_path;
-  # configure the table header columns
-  $header = array(
-    array('data' => 'Device Id',        'field' => 'device_id', 'sort' => 'ASC'),
-    array('data' => 'Device Code',        'field' => 'device_code', 'sort' => 'ASC'),
-    array('data' => 'Status',        'field' => 'status', 'sort' => 'ASC'),
-    array('data' => 'Type Id',        'field' => 'type_id', 'sort' => 'ASC'),
-    array('data' => 'Comment',        'field' => 'comment', 'sort' => 'ASC'),
-  );
-
-  # set the database table and initial SelectQuery options
-  # $select is a SelectQuery object.
-  # @see http://api.drupal.org/api/drupal/includes--database--select.inc/class/Se...
-  $select = db_select('game_devices', 'd')
-              ->extend('PagerDefault')
-              ->extend('TableSort');
-
-  # get the desired fields
-  # orderByHeader is a TableSort method (http://api.drupal.org/api/drupal/includes--tablesort.inc/function/TableS...)
-  #$select->condition('type', 6)
-  $select->fields('d', array('device_id', 'device_code','status','type_id','comment'))
-         ->limit(10)
-         ->orderByHeader($header)
-         ->orderBy('device_id', 'DESC');  # TODO this call seems to be losing to orderByHeader on page load
-
-  # execute the query
-  $results = $select->execute();
-
-  # configure the table rows, making the first column a link to our 'edit' page
-  $rows = array();
-  foreach ($results as $row) {
-    $rows[] = array("<a href=\"/projects/edit/" . $row->device_id . "\">" . $row->device_id . '</a>',
-                    $row->device_code,
-                    $row->status,
-                    $row->type_id,
-                    $row->comment,
-                    "<a href=\"" . $base_path . "bingo_adm?action=edit&device_id=". $row->device_id . "\">" . t("Edit") . "</a>",
-                    "<a href=\"" . $base_path . "bingo_adm?action=delete&device_id=". $row->device_id . "\">" . t("Delete") . "</a>",
-
+  /*$header = array(
+      array('data' => 'Device Id',     'field' => 'device_id',   'sort' => 'ASC'),
+      array('data' => 'Device Code',   'field' => 'device_code', 'sort' => 'ASC'),
+      array('data' => 'Status',        'field' => 'status',      'sort' => 'ASC'),
+      array('data' => 'Type Id',       'field' => 'type_id',     'sort' => 'ASC'),
+      array('data' => 'Comment',       'field' => 'comment',     'sort' => 'ASC'),
     );
-  }
+*/
+$header = array(
+      array('data' => 'Device Id',     'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
+      array('data' => 'Device Code',   'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
+      array('data' => 'Status',        'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
+      array('data' => 'Type Id',       'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
+      array('data' => 'Comment',       'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
+      array('data' => 'Options',       'datatable_options' => array('bSortable' => FALSE, 'bSearchable' => FALSE),),
+    );
+  $fields = array('device_id', 'device_code','status','type_id','comment');
 
-  $output = theme('table', array('header' => $header,
-                                 'rows' => $rows ));
+  //$output = get_themed_table('game_devices', $fields, 'device_id', $header);
 
-  # add the pager
-  $output .= theme('pager');
-
+  $output = get_themed_data_table('game_devices', $fields, 'device_id', $header);
   return $output;
 
 }
+
 /*
 function bingo_adm_menu() {
   $items = array();
