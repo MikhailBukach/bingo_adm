@@ -1,0 +1,118 @@
+<?php
+ function get_rows($table_name, $fields, $key_field, $limit = 10){
+  global $base_path;
+# set the database table and initial SelectQuery options
+  # $select is a SelectQuery object.
+  # @see http://api.drupal.org/api/drupal/includes--database--select.inc/class/Se...
+  $select = db_select($table_name, 't');
+
+
+  # get the desired fields
+  # orderByHeader is a TableSort method (http://api.drupal.org/api/drupal/includes--tablesort.inc/function/TableS...)
+  #$select->condition('type', 6)
+  $select->fields('t', $fields)
+         ->orderBy($key_field, 'DESC');  # TODO this call seems to be losing to orderByHeader on page load
+
+  # execute the query
+  $results = $select->execute();
+
+  # configure the table rows
+  $rows = array();
+  foreach ($results as $row) {
+    $row_cols = array();
+
+    foreach($fields as $field_name) {
+      $row_cols[] = $row->$field_name;
+    }
+
+    $row_cols[] = "<a href=\"" . $base_path . "bingo_adm?action=edit&$key_field=". $row->$key_field . "\">" . t("Edit") . "</a>&nbsp;" . 
+                  "<a href=\"" . $base_path . "bingo_adm?action=delete&$key_field=". $row->$key_field . "\">" . t("Delete") . "</a>";
+    //$row_cols[] = "<a href=\"" . $base_path . "bingo_adm?action=delete&$key_field=". $row->$key_field . "\">" . t("Delete") . "</a>";
+
+    $rows[] = $row_cols;
+  }
+   return $rows;
+ }   
+
+ function get_themed_table($table_name, $fields, $key_field, $header, $limit = 10) {
+  global $base_path;
+  
+
+  # set the database table and initial SelectQuery options
+  # $select is a SelectQuery object.
+  # @see http://api.drupal.org/api/drupal/includes--database--select.inc/class/Se...
+  $select = db_select($table_name, 't')
+              ->extend('PagerDefault')
+              ->extend('TableSort');
+
+  # get the desired fields
+  # orderByHeader is a TableSort method (http://api.drupal.org/api/drupal/includes--tablesort.inc/function/TableS...)
+  #$select->condition('type', 6)
+  $select->fields('t', $fields)
+         ->limit($limit)
+         ->orderByHeader($header)
+         ->orderBy($key_field, 'DESC');  # TODO this call seems to be losing to orderByHeader on page load
+
+  # execute the query
+  $results = $select->execute();
+
+  # configure the table rows
+  $rows = array();
+  foreach ($results as $row) {
+    $row_cols = array();
+
+    foreach($fields as $field_name) {
+      $row_cols[] = $row->$field_name;
+    }
+
+    $row_cols[] = "<a href=\"" . $base_path . "bingo_adm?action=edit&$key_field=". $row->$key_field . "\">" . t("Edit") . "</a>";
+    $row_cols[] = "<a href=\"" . $base_path . "bingo_adm?action=delete&$key_field=". $row->$key_field . "\">" . t("Delete") . "</a>";
+
+    $rows[] = $row_cols;
+  }
+
+  $output = theme('table', array('header' => $header,
+                                 'rows' => $rows ));
+  # add the pager
+  $output .= theme('pager');
+
+  return $output;
+
+}
+function get_themed_data_table($table_name, $fields, $key_field, $header){
+  // Table settings.
+  $attributes['datatable_options'] = array(
+    //'bFilter'   => TRUE,
+    'bInfo'     => FALSE,
+     // "sScrollY" => 200,
+       // "bJQueryUI" => true,
+    "bStateSave"  => true,
+        "sPaginationType" => "full_numbers"
+  );
+  // Define table columns
+
+  // Table data.
+    
+  $rows = get_rows($table_name, $fields, $key_field);
+
+/*
+  // Render using Drupal's render API.
+  $build['datatable'] = array(
+    '#theme' => 'datatable',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#attributes' => $attributes,
+  );
+*/   
+  // Or, render using a theme function.
+  $variables = array(
+    'attributes' => $attributes,
+    'header' => $header,
+    'rows' => $rows,
+  );
+
+  $output = theme('datatable', $variables);
+  
+  return $output;
+}
+?>
