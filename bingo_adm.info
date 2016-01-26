@@ -1,6 +1,7 @@
-name = Bingo Adm
-description = Bingo Adm.
+name = Bingo Admin
+description = Bingo Admin.
 package = Bingo
 core = 7.x
+dependencies[] = bingo_adm_common
 files[] = bingo_adm.module
 version = 1.0
