@@ -7,7 +7,16 @@
     function bingo_adm_menu() {
        $items = array();
   
-
+       $items['bingo_adm'] = array( //this creates a URL that will call this form at "examples/form-example"
+              'title' => t('Administration'), //page title
+              'description' => t('Administration'),
+              'page callback' => 'bingo_adm_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+              //'page arguments' => array('bingo_adm_form'), //put the name of the form here
+              'access callback' => TRUE,
+              //'delivery callback' => 'drupal_json_output',
+              'access arguments' => array('access_to_bingo_adm'),
+              'type' => MENU_CALLBACK
+       );
        $items['bingo_adm/game_devices'] = array( //this creates a URL that will call this form at "examples/form-example"
               'title' => t('Game Devices'), //page title
               'description' => t('Game Devices'),
@@ -32,6 +41,9 @@
     }
 function bingo_adm_permission() {
   return array(
+    
+      'access_to_bingo_adm' => array('title' => t('Access to bingo_adm'),
+                                         'description' => t('Insert, Update, Delete'),),
       
       'access_to_game_devices' => array('title' => t('Access to game_devices'),
                                          'description' => t('Insert, Update, Delete'),), 
@@ -73,8 +85,8 @@ function bingo_adm_page() {
     }
 
     $items = array();
-    $items[] = array('data' => '<a href="/bingo_adm/game_devices">game_devices</a>');             
-    $items[] = array('data' => '<a href="/bingo_adm/device_type">device_type</a>');
+    $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_devices">game_devices</a>');             
+    $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/device_type">device_type</a>');
 
     $output = theme_item_list(array('items' => $items, 'title' => t('Bingo Administration'), 'type' => 'ul', 'attributes' => array()));
 
@@ -138,7 +150,7 @@ function bingo_adm_menu() {
 function game_devices_form($form, &$form_state) {
   global $base_path;
   $form_title = t('Add new device');
-  $collapsed = TRUE;
+  $collapsed = false;
   //Fields
   $device_id = 0;
   $device_code = 0;
