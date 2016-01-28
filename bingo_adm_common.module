@@ -36,7 +36,7 @@
 
  function get_themed_table($table_name, $fields, $key_field, $header, $limit = 10) {
   global $base_path;
-  
+  drupal_set_message('get_themed_table');
 
   # set the database table and initial SelectQuery options
   # $select is a SelectQuery object.
@@ -110,9 +110,86 @@ function get_themed_data_table($table_name, $fields, $key_field, $header){
     'header' => $header,
     'rows' => $rows,
   );
+  
+  $output = "<script type='text/javascript'>
+        // For demo to fit into DataTables site builder...
+        jQuery('#datatable-1')
+          .removeClass(  )
+          .addClass('table table-striped table-bordered');
+      </script>";
+  $output .= theme('datatable', $variables);
 
-  $output = theme('datatable', $variables);
   
   return $output;
+}
+function adm_common_filter_form($form, &$form_state) {
+  global $base_path;
+  $search_text = "";
+
+  $form['filter'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Filter'),
+    '#attributes' => array('class' => array('container-inline')), 
+    '#collapsible' => TRUE, // Added
+    '#collapsed' => FALSE,  // Added
+  );
+
+ 
+   $form['filter']['rows'] = array(
+    '#title' => t('Show'),
+    '#type' => 'select',
+    
+   // '#description' => t('entries'),
+    '#options' => array(10,25,50,100),
+  );
+  
+  $form['filter']['markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div style="width:50%">&nbsp;</div>',
+  );
+  
+  $form['filter']['search_text'] = array(
+    '#type' => 'textfield', //you can find a list of available types in the form api
+    '#attributes' => array(
+        'placeholder' => t('Search by all columns'),
+    ),
+   //'#attributes' => array('style' => array('float:right')), 
+    '#title' => t('Search:'),
+    '#size' => 30,
+    '#maxlength' => 100,
+
+  );
+
+  if ($search_text != "") {
+    $form['filter']['search_text']['#default_value'] = $device_id;
+  }
+
+  $form['filter']['submit_search_button'] = array(
+    '#type' => 'submit',
+    //'#attributes' => array('style' => array('float:right')), 
+    '#value' => t('Apply'),
+  );
+   $form['filter']['clear'] = array(
+        '#type' => 'button',
+        '#button_type' => 'reset',
+        '#name' => 'clear_filter',
+        '#submit' => 'false',
+        '#value' => t("Clear"),
+        //'#attributes' => array(
+        //   'onclick' => '$(this).parents("form").attr("allowSubmission", "false"); 
+        //        window.location = "' .$base_path . 'bingo_adm";'),
+      );
+  
+  return $form;
+}
+function adm_common_filter_form_submit($form, &$form_state) {
+  global $base_path;
+  drupal_set_message('adm_common_filter_form_submit');
+  dpr($form);
+      if (isset($form_state['values']['search_text'])) {
+        $search_text = $form_state['values']['search_text'];
+         drupal_set_message($search_text);
+      }
+     
 }
 ?>
