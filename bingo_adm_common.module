@@ -25,8 +25,8 @@
       $row_cols[] = $row->$field_name;
     }
 
-    $row_cols[] = "<a href=\"" . $base_path . "bingo_adm?action=edit&$key_field=". $row->$key_field . "\">" . t("Edit") . "</a>&nbsp;" . 
-                  "<a href=\"" . $base_path . "bingo_adm?action=delete&$key_field=". $row->$key_field . "\">" . t("Delete") . "</a>";
+    $row_cols[] = "<a href=\"" . $base_path . "bingo_adm/$table_name?action=edit&$key_field=". $row->$key_field . "\">" . t("Edit") . "</a>&nbsp;|&nbsp;" . 
+                  "<a href=\"" . $base_path . "bingo_adm/$table_name?action=delete&$key_field=". $row->$key_field . "\">" . t("Delete") . "</a>";
     //$row_cols[] = "<a href=\"" . $base_path . "bingo_adm?action=delete&$key_field=". $row->$key_field . "\">" . t("Delete") . "</a>";
 
     $rows[] = $row_cols;
@@ -79,6 +79,17 @@
   return $output;
 
 }
+function build_headers_for_data_table($fields){
+  $header = array();
+
+  foreach($fields as $field_name) {
+    $header[] =  array('data' => t($field_name),   'class' => '',  'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE));
+  }
+  
+  $header[] = array('data' => t('Options'),   'class' => '',    'datatable_options' => array('bSortable' => FALSE, 'bSearchable' => FALSE));
+  
+  return $header;
+}
 function get_themed_data_table($table_name, $fields, $key_field, $header){
   // Table settings.
   $attributes['datatable_options'] = array(
@@ -111,16 +122,32 @@ function get_themed_data_table($table_name, $fields, $key_field, $header){
     'rows' => $rows,
   );
   
-  $output = "<script type='text/javascript'>
-        // For demo to fit into DataTables site builder...
-        jQuery('#datatable-1')
-          .removeClass(  )
-          .addClass('table table-striped table-bordered');
-      </script>";
-  $output .= theme('datatable', $variables);
+  $output = theme('datatable', $variables);
 
-  
   return $output;
+}
+function build_form_for_table($title, $table_name, $fields){
+  $form = array();
+  $form[$table_name] = array(
+        '#type' => 'fieldset',
+        '#title' => $title,
+        '#collapsible' => TRUE, // Added
+        '#collapsed' => $collapsed,  // Added
+  );
+
+  foreach($fields as $field_name) {
+    $form[$table_name][$field_name] = array(
+          '#type' => 'textfield', //you can find a list of available types in the form api
+          '#title' => $field_name,
+          '#attributes' => array(
+              'placeholder' => t('Enter the ' . $field_name),
+          ),
+          '#size' => 40,
+          '#maxlength' => 255,
+          '#required' => TRUE, //make this field required 
+      );
+  }
+  return $form;
 }
 function adm_common_filter_form($form, &$form_state) {
   global $base_path;
@@ -182,6 +209,7 @@ function adm_common_filter_form($form, &$form_state) {
   
   return $form;
 }
+
 function adm_common_filter_form_submit($form, &$form_state) {
   global $base_path;
   drupal_set_message('adm_common_filter_form_submit');
