@@ -1,136 +1,4 @@
 <?php
-  //session_name($_POST['ssname']);
-  //session_start();
-    //module_load_include('php', 'bingo_adm', 'php_rutils/RUtils');
-    //module_load_include('php', 'bingo_adm', 'php_rutils/Dt');
-    
-    function bingo_adm_menu() {
-       $items = array();
-  
-       $items['bingo_adm'] = array( //this creates a URL that will call this form at "examples/form-example"
-              'title' => t('Administration'), //page title
-              'description' => t('Administration'),
-              'page callback' => 'bingo_adm_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
-              //'page arguments' => array('bingo_adm_form'), //put the name of the form here
-              'access callback' => TRUE,
-              //'delivery callback' => 'drupal_json_output',
-              'access arguments' => array('access_to_bingo_adm'),
-              'type' => MENU_CALLBACK
-       );
-       $items['bingo_adm/game_devices'] = array( //this creates a URL that will call this form at "examples/form-example"
-              'title' => t('Game Devices'), //page title
-              'description' => t('Game Devices'),
-              'page callback' => 'bingo_adm_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
-              //'page arguments' => array('bingo_adm_form'), //put the name of the form here
-              'access callback' => TRUE,
-              //'delivery callback' => 'drupal_json_output',
-              'access arguments' => array('access_to_game_devices'),
-              'type' => MENU_CALLBACK
-       );
-       $items['bingo_adm/device_type'] = array( //this creates a URL that will call this form at "examples/form-example"
-              'title' => t('Game Device Type'), //page title
-              'description' => t('Game Device Type'),
-              'page callback' => 'bingo_adm_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
-              //'page arguments' => array('bingo_adm_form'), //put the name of the form here
-              'access callback' => TRUE,
-              //'delivery callback' => 'drupal_json_output',
-              'access arguments' => array('access_to_game_device_type'),
-              'type' => MENU_CALLBACK
-       );
-       return $items;
-    }
-function bingo_adm_permission() {
-  return array(
-    
-      'access_to_bingo_adm' => array('title' => t('Access to bingo_adm'),
-                                         'description' => t('Insert, Update, Delete'),),
-      
-      'access_to_game_devices' => array('title' => t('Access to game_devices'),
-                                         'description' => t('Insert, Update, Delete'),), 
-
-      'access_to_game_device_type' => array('title' => t('Access to game_device_type'),
-                                         'description' => t('Insert, Update, Delete'),), 
-
-      'access_to_game_device_balance' => array('title' => t('Access to device_balance'),
-                                         'description' => t('Insert, Update, Delete'),), 
-
-      'access_to_game_period' => array('title' => t('Access to game_period'),
-                                         'description' => t('Insert, Update, Delete'),), 
-
-      'access_to_game_period' => array('title' => t('Access to game_period'),
-                                         'description' => t('Insert, Update, Delete'),),
-
-      'access_to_game_settings' => array('title' => t('Access to game_period'),
-                                         'description' => t('Insert, Update, Delete'),),
-  );
-}
-
-
-function bingo_adm_page() {
-    global $base_path;
-    global $user;
-    $action = "none";
-
-    if(!user_access('access_to_game_devices')) {
-       drupal_set_message(t('You are not authorized to access this page.'));
-       return t('You are not authorized to access this page.');
-    } //- See more at: http://www.webomelette.com/define-check-custom-permission-drupal-7#sthash.vszHIVAJ.dpuf
-
-    if (isset($_REQUEST['action'])) {
-       $action = $_REQUEST['action'];
-       if ($action == "delete") {
-          game_devices_delete($_REQUEST['device_id']);
-
-       }
-    }
-
-    $items = array();
-    $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_devices">game_devices</a>');             
-    $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/device_type">device_type</a>');
-
-    $output = theme_item_list(array('items' => $items, 'title' => t('Bingo Administration'), 'type' => 'ul', 'attributes' => array()));
-
-    $form = drupal_get_form('game_devices_form');
-    $output .= drupal_render($form);
-
-    //$form = drupal_get_form('adm_common_filter_form');
-    //$output .= drupal_render($form);
-    
-
-    return $output .  game_devices_table();
-   // return get_list();
-
-
-  }
-  
- function game_devices_table() {
-$header = array(
-      array('data' => 'Device Id',     'field' => 'device_id',   'sort' => 'ASC'),
-      array('data' => 'Device Code',   'field' => 'device_code', 'sort' => 'ASC'),
-      array('data' => 'Status',        'field' => 'status',      'sort' => 'ASC'),
-      array('data' => 'Type Id',       'field' => 'type_id',     'sort' => 'ASC'),
-      array('data' => 'Comment',       'field' => 'comment',     'sort' => 'ASC'),
-    );
-
-  
-$header = array(
-      array('data' => 'Device Id',   'class' => '',  'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
-      array('data' => 'Device Code',  'class' => '', 'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
-      array('data' => 'Status',   'class' => '',     'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
-      array('data' => 'Type Id',   'class' => '',    'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
-      array('data' => 'Comment',   'class' => '',    'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE),),
-      array('data' => 'Options',   'class' => '',    'datatable_options' => array('bSortable' => FALSE, 'bSearchable' => FALSE),),
-    );
-    
-  $fields = array('device_id', 'device_code','status','type_id','comment');
-
-  //$output = get_themed_table('game_devices', $fields, 'device_id', $header);
-
-  $output = get_themed_data_table('game_devices', $fields, 'device_id', $header);
-  return $output;
-
-}
-
 /*
 function bingo_adm_menu() {
   $items = array();
@@ -146,11 +14,268 @@ function bingo_adm_menu() {
   return $items;
 }
 */
+ 
+function bingo_adm_menu() {
+    $items = array();
+
+    $items['bingo_adm'] = array( //this creates a URL that will call this form at "examples/form-example"
+      'title' => t('Administration'), //page title
+      'description' => t('Administration'),
+      'page callback' => 'bingo_adm_page', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+      //'page arguments' => array('bingo_adm_form'), //put the name of the form here
+      'access callback' => TRUE,
+      //'delivery callback' => 'drupal_json_output',
+      'access arguments' => array('access_to_bingo_adm'),
+      'type' => MENU_CALLBACK
+    );
+    $items['bingo_adm/game_devices'] = array(
+      'title' => t('Game Devices'), 
+      'description' => t('Game Devices'),
+      'page callback' => 'game_devices_page',
+      'access callback' => TRUE,
+      'access arguments' => array('access_to_game_devices'),
+      'type' => MENU_CALLBACK
+    );
+    $items['bingo_adm/game_device_type'] = array(
+      'title' => t('Game Device Type'),
+      'description' => t('Game Device Type'),
+      'page callback' => 'game_device_type_page',
+      'access callback' => TRUE,
+      'access arguments' => array('access_to_game_device_type'),
+      'type' => MENU_CALLBACK
+    );
+    $items['bingo_adm/game_device_balance'] = array(
+      'title' => t('Game Device Balance'),
+      'description' => t('Game Device Balance'),
+      'page callback' => 'game_device_balance_page',
+      'access callback' => TRUE,
+      'access arguments' => array('access_to_game_device_balance'),
+      'type' => MENU_CALLBACK
+    );
+    $items['bingo_adm/game_period'] = array( 
+      'title' => t('Game Period'),
+      'description' => t('Game Period'),
+      'page callback' => 'game_period_page', 
+      'access callback' => TRUE,
+      'access arguments' => array('access_to_game_period'),
+      'type' => MENU_CALLBACK
+    );
+    $items['bingo_adm/game_settings'] = array( 
+      'title' => t('Game Settings'),
+      'description' => t('Game Settings'),
+      'page callback' => 'game_settings_page', 
+      'access callback' => TRUE,
+      'access arguments' => array('access_to_game_settings'),
+      'type' => MENU_CALLBACK
+    );
+    return $items;
+}
+function bingo_adm_permission() {
+  return array(
+    
+      'access_to_bingo_adm' => array('title' => t('Access to bingo_adm'),
+                                         'description' => t('Select, Insert, Update, Delete'),),
+      
+      'access_to_game_devices' => array('title' => t('Access to game_devices'),
+                                         'description' => t('Select, Insert, Update, Delete'),),
+
+      'access_to_game_device_type' => array('title' => t('Access to game_device_type'),
+                                         'description' => t('Select, Insert, Update, Delete'),),
+
+      'access_to_game_device_balance' => array('title' => t('Access to device_balance'),
+                                         'description' => t('Select, Insert, Update, Delete'),),
+
+      'access_to_game_period' => array('title' => t('Access to game_period'),
+                                         'description' => t('Select, Insert, Update, Delete'),),
+
+      'access_to_game_settings' => array('title' => t('Access to game_period'),
+                                         'description' => t('Select, Insert, Update, Delete'),),
+  );
+}
+
+
+function bingo_adm_page() {
+    global $base_path;
+    global $user;
+    $action = "none";
+
+    if(!user_access('access_to_bingo_adm')) {
+       drupal_set_message(t('You are not authorized to access this page.'));
+       return t('You are not authorized to access this page.');
+    } //- See more at: http://www.webomelette.com/define-check-custom-permission-drupal-7#sthash.vszHIVAJ.dpuf
+
+
+    $items = array();
+    if(user_access('access_to_game_devices')) {
+      $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_devices">' . t('Game Devices') . '</a>');    
+    }
+    if(user_access('access_to_game_device_type')) {         
+      $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_device_type">' . t('Device Type') . '</a>');
+    }
+    if(user_access('access_to_game_device_balance')) { 
+      $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_device_balance">' . t('Device Balance') . '</a>');
+    }
+    if(user_access('access_to_game_period')) { 
+      $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_period">' . t('Game Period') . '</a>');
+    }
+    if(user_access('access_to_game_settings')) { 
+      $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/game_settings">' . t('Game Settings') . '</a>');
+    }
+
+    $output = theme_item_list(array('items' => $items, 'title' => t('Bingo Administration'), 'type' => 'ul', 'attributes' => array()));
+
+    //$form = drupal_get_form('adm_common_filter_form');
+    //$output .= drupal_render($form);
+    
+
+    return $output;
+  }
+function bingo_admin_link(){
+  global $base_path; 
+
+  $items = array();
+  if(user_access('access_to_bingo_adm')) {
+      $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm">' . t('Bingo Administration') . '</a>');    
+  }
+
+  $output = theme_item_list(array('items' => $items, 'title' => t('Bingo Administration'), 'type' => 'ul', 'attributes' => array()));
+  return $output;
+
+}
+function game_devices_page(){
+
+  if(!user_access('access_to_game_devices')) {
+      drupal_set_message(t('You are not authorized to access this page.'));
+      return t('You are not authorized to access this page.');
+  }
+
+  if (isset($_REQUEST['action'])) {
+     $action = $_REQUEST['action'];
+     if ($action == "delete") {
+        game_devices_delete($_REQUEST['device_id']);
+
+     }
+  }
+
+  $form = drupal_get_form('game_devices_form');
+  $output = bingo_admin_link();
+  $output .= drupal_render($form);
+  $output .= game_devices_table();
+
+  return $output;
+}
+function game_device_type_page(){
+  
+  if(!user_access('access_to_game_device_type')) {
+       drupal_set_message(t('You are not authorized to access this page.'));
+       return t('You are not authorized to access this page.');
+  }
+
+  $output = bingo_admin_link();
+  $output .= game_device_type_table();
+  return $output;
+
+}
+function game_device_balance_page(){
+  
+  if(!user_access('access_to_game_device_balance')) {
+       drupal_set_message(t('You are not authorized to access this page.'));
+       return t('You are not authorized to access this page.');
+  }
+
+  $output = bingo_admin_link();
+  $output .= game_device_balance_table();
+  return $output;
+
+}
+function game_period_page(){
+  
+  if(!user_access('access_to_game_period')) {
+       drupal_set_message(t('You are not authorized to access this page.'));
+       return t('You are not authorized to access this page.');
+  }
+
+  $output = bingo_admin_link();
+  $output .= game_period_table();
+  return $output;
+
+}
+function game_settings_page(){
+  
+  if(!user_access('access_to_game_settings')) {
+       drupal_set_message(t('You are not authorized to access this page.'));
+       return t('You are not authorized to access this page.');
+  }
+
+  $output = bingo_admin_link();
+  $output .= game_settings_table();
+  return $output;
+
+}
+
+ function game_devices_table() {
+  /*
+  $header = array(
+      array('data' => t('Device Id'),     'field' => 'device_id',   'sort' => 'ASC'),
+      array('data' => t('Device Code'),   'field' => 'device_code', 'sort' => 'ASC'),
+      array('data' => t('Status'),        'field' => 'status',      'sort' => 'ASC'),
+      array('data' => t('Type Id'),       'field' => 'type_id',     'sort' => 'ASC'),
+      array('data' => t('Comment'),       'field' => 'comment',     'sort' => 'ASC'),
+    );
+*/
+
+  $header = build_headers_for_data_table(array('Device Id','Device Code','Status','Type Id','Comment'));
+  $fields = array('device_id', 'device_code','status','type_id','comment');
+
+  $output = get_themed_data_table('game_devices', $fields, 'device_id', $header);
+  return $output;
+
+}
+
+function game_device_type_table() {
+
+  $header = build_headers_for_data_table(array('Type Id','Type Name','Game Limit','Game Mask'));
+  $fields = array('type_id', 'type_name','game_limit','game_mask');
+
+  $output = get_themed_data_table('game_device_type', $fields, 'type_id', $header);
+  return $output;
+
+}
+
+function game_device_balance_table() {
+
+  $header = build_headers_for_data_table(array('Id Balance','User Id','Period Id','Device Id', 'Balance', 'Status'));
+  $fields = array('id_balance', 'user_id', 'period_id', 'device_id', 'balance', 'status');
+
+  $output = get_themed_data_table('game_device_balance', $fields, 'id_balance', $header);
+  return $output;
+
+}
+
+function game_period_table() {
+
+  $header = build_headers_for_data_table(array('Period Id','Starting Date','Finishing Date'));
+  $fields = array('period_id', 'starting_date', 'finishing_date');
+
+  $output = get_themed_data_table('game_period', $fields, 'period_id', $header);
+  return $output;
+
+}
+
+function game_settings_table() {
+
+  $header = build_headers_for_data_table(array('Id','Settings Name','Settings Value'));
+  $fields = array('id', 'settings_name', 'settings_value');
+
+  $output = get_themed_data_table('game_settings', $fields, 'id', $header);
+  return $output;
+
+}
 
 function game_devices_form($form, &$form_state) {
   global $base_path;
   $form_title = t('Add new device');
-  $collapsed = false;
+  $collapsed = true;
   //Fields
   $device_id = 0;
   $device_code = 0;
@@ -182,6 +307,7 @@ function game_devices_form($form, &$form_state) {
           }                            
      }
   }
+
   if (isset($_POST['cancel'])) {
       unset($_REQUEST);
       header('Location: ' . $base_path . 'bingo_adm');
