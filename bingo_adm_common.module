@@ -1,5 +1,98 @@
 <?php
- function get_rows($table_name, $fields, $key_field, $limit = 10){
+function build_form_for_table($title, $table_name, $fields){
+  $form = array();
+  $form[$table_name] = array(
+        '#type' => 'fieldset',
+        '#title' => $title,
+        '#collapsible' => true, 
+        '#collapsed' => false,  
+  );
+
+  foreach($fields as $field_name => $attributes) {
+    $form[$table_name][$field_name] = array(
+          '#type' => $attributes['type'], 
+          '#title' => t($attributes['title']),
+      );
+    if (isset($attributes['required'])) {
+       $form[$table_name][$field_name]['#required'] = $attributes['required'];
+    }
+    if (isset($attributes['default_value'])) {
+       $form[$table_name][$field_name]['#default_value'] = $attributes['default_value'];
+    }
+    if (isset($attributes['options'])) {
+       $form[$table_name][$field_name]['#options'] = get_select_options($attributes['options']['table_name'], $attributes['options']['key_field'],$attributes['options']['value_field']);
+    }
+  }
+  $form[$table_name]['submit_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+   $form[$table_name]['cancel'] = array(
+        '#type' => 'button',
+        '#button_type' => 'reset',
+        '#name' => 'cancel',
+        '#submit' => 'false',
+        '#value' => t("Cancel"),
+        //'#attributes' => array(
+        //   'onclick' => '$(this).parents("form").attr("allowSubmission", "false"); 
+        //        window.location = "' .$base_path . 'bingo_adm";'),
+      );
+  return $form;
+}
+
+function get_select_options($table_name, $key_field, $value_fields, $condition = null){
+  $select_fields = $value_fields;
+  $select_fields[] =  $key_field;
+
+  $select = db_select($table_name, 't');
+ 
+  $select->fields('t', $select_fields);
+
+  if (isset($condition)) {
+      $select->condition($key_field, $condition);
+  }
+         
+  # execute the query
+  $results = $select->execute();
+  $rows = array();
+  $rows['-1'] = t('--- Select ---');
+  $ret_value = "";
+
+  foreach ($results as $row) {
+    foreach ($value_fields as $value_field) {
+      $ret_value .= $row->$value_field . ' - ';
+    }
+    $rows[$row->$key_field] = substr($ret_value, 0, strlen($ret_value)-3);
+    $ret_value = "";
+  }
+
+  //dpr($row);
+   return $rows;
+ 
+}
+function get_ref_field_value($table_name, $key_field, $value_fields, $condition){
+  $ret_value = "";
+
+  $select = db_select($table_name, 't');
+ 
+  $select->condition($key_field, $condition)
+         ->fields('t', $value_fields);
+         
+  # execute the query
+  $results = $select->execute();
+
+
+  foreach ($results as $row) {
+    foreach ($value_fields as $value_field) {
+      $ret_value .= $row->$value_field . ' - ';
+    }
+    $ret_value = substr($ret_value, 0, strlen($ret_value)-3);
+  }
+
+   return $ret_value;
+ 
+}
+ function get_rows($table_name, $fields, $key_field, $references = null, $limit = 10){
   global $base_path;
 # set the database table and initial SelectQuery options
   # $select is a SelectQuery object.
@@ -22,7 +115,17 @@
     $row_cols = array();
 
     foreach($fields as $field_name) {
-      $row_cols[] = $row->$field_name;
+        $filed_value = $row->$field_name;
+        #Try to get reference value
+        if (isset($references)) {         
+          foreach ($references as $ref_fld_name => $ref) {
+             if ($ref_fld_name == $field_name) {
+                $filed_value = get_ref_field_value($ref['table_name'], $ref['key_field'], $ref['value_field'], $filed_value);
+             }
+          }
+        }
+        
+      $row_cols[] = $filed_value;
     }
 
     $row_cols[] = "<a href=\"" . $base_path . "bingo_adm/$table_name?action=edit&$key_field=". $row->$key_field . "\">" . t("Edit") . "</a>&nbsp;|&nbsp;" . 
@@ -90,7 +193,7 @@ function build_headers_for_data_table($fields){
   
   return $header;
 }
-function get_themed_data_table($table_name, $fields, $key_field, $header){
+function get_themed_data_table($table_name, $fields, $key_field, $header, $references = null){
   // Table settings.
   $attributes['datatable_options'] = array(
     //'bFilter'   => TRUE,
@@ -104,7 +207,7 @@ function get_themed_data_table($table_name, $fields, $key_field, $header){
 
   // Table data.
     
-  $rows = get_rows($table_name, $fields, $key_field);
+  $rows = get_rows($table_name, $fields, $key_field, $references);
 
 /*
   // Render using Drupal's render API.
@@ -126,29 +229,7 @@ function get_themed_data_table($table_name, $fields, $key_field, $header){
 
   return $output;
 }
-function build_form_for_table($title, $table_name, $fields){
-  $form = array();
-  $form[$table_name] = array(
-        '#type' => 'fieldset',
-        '#title' => $title,
-        '#collapsible' => TRUE, // Added
-        '#collapsed' => $collapsed,  // Added
-  );
 
-  foreach($fields as $field_name) {
-    $form[$table_name][$field_name] = array(
-          '#type' => 'textfield', //you can find a list of available types in the form api
-          '#title' => $field_name,
-          '#attributes' => array(
-              'placeholder' => t('Enter the ' . $field_name),
-          ),
-          '#size' => 40,
-          '#maxlength' => 255,
-          '#required' => TRUE, //make this field required 
-      );
-  }
-  return $form;
-}
 function adm_common_filter_form($form, &$form_state) {
   global $base_path;
   $search_text = "";
