@@ -11,7 +11,7 @@ function delete_record($table_name, $key_field, $field_value)
     }
 }
 
-function insert_update_table($table_name, $key_field, $fields_values)
+function insert_update_table($table_name, $key_field, $fields_values, $action = 'add')
 {
     global $base_path;
     try {
@@ -20,13 +20,16 @@ function insert_update_table($table_name, $key_field, $fields_values)
         $query->addExpression('COUNT(*)');
         $count = $query->execute()->fetchField();
 
-        if ($count > 0) {
+
+        if ($count > 0 && $action == 'edit') {
+
             db_update($table_name)
                 ->fields($fields_values)
                 ->condition($key_field, $fields_values[$key_field])
                 ->execute();
             drupal_set_message(t('Record has been updated!'));
         } else {
+
             $id = db_insert($table_name)
                 ->fields($fields_values)
                 ->execute();
@@ -55,7 +58,7 @@ function build_form_for_table($title, $table_name, $fields)
             if ($attr_name == '#options') {
                 $form[$table_name][$field_name]['#options'] = get_select_options($attr_value['table_name'], $attr_value['key_field'], $attr_value['value_field']);
 
-            }else{
+            } else {
                 $form[$table_name][$field_name][$attr_name] = $attr_value;
             }
 
