@@ -3,5 +3,6 @@ description = Bingo Admin.
 package = Bingo
 core = 7.x
 dependencies[] = bingo_adm_common
+dependencies[] = date_popup
 files[] = bingo_adm.module
 version = 1.0
