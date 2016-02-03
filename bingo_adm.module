@@ -48,11 +48,15 @@ function bingo_adm_menu()
 
     return $items;
 }
-function bingo_adm_block_info() {
+
+function bingo_adm_block_info()
+{
     $blocks['bingo_adm'] = array('info' => t('Bingo Admin Menu'));
     return $blocks;
 }
-function bingo_adm_block_view($delta = '') {
+
+function bingo_adm_block_view($delta = '')
+{
     global $base_path;
     $content = "";
 
@@ -71,6 +75,7 @@ function bingo_adm_block_view($delta = '') {
     $block['content'] = $content;
     return $block;
 }
+
 function bingo_adm_permission()
 {
     return array(
@@ -225,11 +230,14 @@ function bingo_adm_form_submit($form, &$form_state)
     $table_name = "";
     $form_info = array();
     $fields_values = array();
+    $action = "Add";
     $form_fields = array();
 
     if (isset($_REQUEST['table_name'])) {
         $table_name = $_REQUEST['table_name'];
-
+        if (isset($_REQUEST['action'])) {
+            $action = $_REQUEST['action'];
+        }
         $form_info = get_forms_info($table_name);
         $form_fields = $form_info['form_fields'];
 
@@ -239,7 +247,7 @@ function bingo_adm_form_submit($form, &$form_state)
 
     }
 
-    insert_update_table($table_name, $form_info['key_field'], $fields_values);
+    insert_update_table($table_name, $form_info['key_field'], $fields_values, $action);
 
     $options = array('query' => array('table_name' => $table_name));
     drupal_goto('bingo_adm/tables', $options);
