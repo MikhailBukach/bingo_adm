@@ -1,7 +1,0 @@
-name = Bingo Admin Common
-description = Bingo Admin Common.
-package = Bingo
-core = 7.x
-files[] = bingo_adm_common.module
-dependencies[] = datatables
-version = 1.0
