@@ -78,26 +78,24 @@ function bingo_adm_block_view($delta = '')
 
 function bingo_adm_permission()
 {
-    return array(
+    $permission = array();
+    $tables_info = get_tables_info('all');
 
-        'access_to_bingo_adm' => array('title' => t('Access to bingo_adm'),
-            'description' => t('Select, Insert, Update, Delete'),),
 
-        'access_to_game_devices' => array('title' => t('Access to game_devices'),
-            'description' => t('Select, Insert, Update, Delete'),),
+    foreach ($tables_info as $table_name => $table_info) {
 
-        'access_to_game_device_type' => array('title' => t('Access to game_device_type'),
-            'description' => t('Select, Insert, Update, Delete'),),
+        $permission['access_to_' . $table_name . '_select'] = array('title' => t('Access to ' . $table_name . ' - Select'),
+            'description' => t($table_name . ' - Select'));
+        $permission['access_to_' . $table_name . '_update'] = array('title' => t('Access to ' . $table_name . ' - Update'),
+            'description' => t($table_name . ' - Update'));
+        $permission['access_to_' . $table_name . '_insert'] = array('title' => t('Access to ' . $table_name . ' - Insert'),
+            'description' => t($table_name . ' - Insert'));
+        $permission['access_to_' . $table_name . '_delete'] = array('title' => t('Access to ' . $table_name . ' - Delete'),
+            'description' => t($table_name . ' - Delete'));
 
-        'access_to_game_device_balance' => array('title' => t('Access to device_balance'),
-            'description' => t('Select, Insert, Update, Delete'),),
+    }
 
-        'access_to_game_period' => array('title' => t('Access to game_period'),
-            'description' => t('Select, Insert, Update, Delete'),),
-
-        'access_to_game_settings' => array('title' => t('Access to game_period'),
-            'description' => t('Select, Insert, Update, Delete'),),
-    );
+    return $permission;
 }
 
 
@@ -311,6 +309,7 @@ function get_tables_info($table_name)
     $ref_fields = array();
     $table_info['game_settings'] = array('title' => 'Game Settings', 'key_field' => 'id', 'headers' => $headers, 'fields' => $fields, 'ref_fields' => $ref_fields);
 
+    //drupal_set_message(json_encode($table_info));
     if (!isset($table_info[$table_name])) {
         return $table_info;
     } else {
