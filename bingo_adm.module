@@ -26,7 +26,7 @@ function bingo_adm_menu()
         //'page arguments' => array('bingo_adm_form'), //put the name of the form here
         'access callback' => TRUE,
         //'delivery callback' => 'drupal_json_output',
-        'access arguments' => array('access_to_bingo_adm'),
+        //'access arguments' => array('access_to_bingo_adm'),
         'type' => MENU_CALLBACK
     );
     $items['bingo_adm/forms'] = array(
@@ -34,7 +34,7 @@ function bingo_adm_menu()
         'description' => t('Add/Edit'),
         'page callback' => 'bingo_adm_forms',
         'access callback' => TRUE,
-        'access arguments' => array('access_to_game_devices', 'access_to_game_device_type', 'access_to_game_device_balance', 'access_to_game_period', 'access_to_game_settings'),
+        // 'access arguments' => array('access_to_game_devices', 'access_to_game_device_type', 'access_to_game_device_balance', 'access_to_game_period', 'access_to_game_settings'),
         'type' => MENU_CALLBACK
     );
     $items['bingo_adm/tables'] = array(
@@ -42,7 +42,7 @@ function bingo_adm_menu()
         'description' => t('Table'),
         'page callback' => 'bingo_adm_tables',
         'access callback' => TRUE,
-        'access arguments' => array('access_to_game_devices', 'access_to_game_device_type', 'access_to_game_device_balance', 'access_to_game_period', 'access_to_game_settings'),
+        // 'access arguments' => get_tables_menu_permissions(),
         'type' => MENU_CALLBACK
     );
 
@@ -76,6 +76,20 @@ function bingo_adm_block_view($delta = '')
     return $block;
 }
 
+function get_tables_menu_permissions()
+{
+    $permission = array();
+    $tables_info = get_tables_info('all');
+
+    foreach ($tables_info as $table_name => $table_info) {
+
+        $permission[] = 'access_to_' . $table_name . '_select';
+
+    }
+
+    return $permission;
+}
+
 function bingo_adm_permission()
 {
     $permission = array();
@@ -105,16 +119,16 @@ function bingo_adm_page()
 
     $tables_info = get_tables_info('all');
 
-    if (!user_access('access_to_bingo_adm')) {
-        drupal_set_message(t('You are not authorized to access this page.'), 'error');
-        return t('You are not authorized to access this page.');
-    } //- See more at: http://www.webomelette.com/define-check-custom-permission-drupal-7#sthash.vszHIVAJ.dpuf
+    //if (!user_access('access_to_bingo_adm')) {
+    //    drupal_set_message(t('You are not authorized to access this page.'), 'error');
+    //    return t('You are not authorized to access this page.');
+    //} //- See more at: http://www.webomelette.com/define-check-custom-permission-drupal-7#sthash.vszHIVAJ.dpuf
 
 
     $items = array();
 
     foreach ($tables_info as $table_name => $table_info) {
-        if (user_access('access_to_' . $table_name)) {
+        if (user_access('access_to_' . $table_name . '_select')) {
             $items[] = array('data' => '<a href="' . $base_path . 'bingo_adm/tables?table_name=' . $table_name . '">' . t($table_info['title']) . '</a>');
         }
     }
