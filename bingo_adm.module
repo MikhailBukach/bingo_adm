@@ -239,6 +239,7 @@ function bingo_adm_form($form, &$form_state)
 function bingo_adm_form_submit($form, &$form_state)
 {
     global $base_path;
+    global $user;
     $table_name = "";
     $form_info = array();
     $fields_values = array();
@@ -254,7 +255,12 @@ function bingo_adm_form_submit($form, &$form_state)
         $form_fields = $form_info['form_fields'];
 
         foreach ($form_fields as $field_name => $field_attributes) {
-            $fields_values[$field_name] = $form_state['values'][$field_name];
+            if ($field_name == $form_info['key_field'] && $action == "add") {
+                $fields_values[$field_name] = null;
+            } else {
+                $fields_values[$field_name] = $form_state['values'][$field_name];
+            }
+
         }
 
     }
@@ -356,7 +362,7 @@ function get_forms_info($table_name)
     $forms_info['game_device_type'] = array('title' => 'Game Device Type', 'key_field' => 'type_id', 'form_fields' => $form_fields);
 
     # game_device_balance
-    $form_fields = array('id_balance' => array('#type' => 'textfield', '#title' => 'Id Balance', '#required' => true),
+    $form_fields = array('id_balance' => array('#type' => 'textfield', '#title' => 'Id Balance', '#required' => false, '#disabled' => true),
         'device_id' => array('#type' => 'select', '#title' => 'Device', '#required' => true, '#options' =>
             array('table_name' => 'game_devices',
                 'key_field' => 'device_id',
@@ -367,7 +373,7 @@ function get_forms_info($table_name)
                 'value_field' => array('starting_date', 'finishing_date'))),
         'balance' => array('#type' => 'textfield', '#title' => 'Balance', '#required' => true),
         'status' => array('#type' => 'textfield', '#title' => 'Status', '#required' => true),
-        'user_id' => array('#type' => 'select', '#title' => 'User Id', '#required' => true, '#options' =>
+        'user_id' => array('#type' => 'select', '#title' => 'User Id', '#required' => true, '#default_value' => '<user>', '#disabled' => true, '#options' =>
             array('table_name' => 'users',
                 'key_field' => 'uid',
                 'value_field' => array('name'))),
