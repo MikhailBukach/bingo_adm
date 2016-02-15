@@ -62,6 +62,7 @@ function insert_update_table($table_name, $key_field, $fields_values, $action = 
 
 function build_form_for_table($title, $table_name, $fields)
 {
+    global $user;
     $form = array();
     $form[$table_name] = array(
         '#type' => 'fieldset',
@@ -79,6 +80,10 @@ function build_form_for_table($title, $table_name, $fields)
 
             } else {
                 $form[$table_name][$field_name][$attr_name] = $attr_value;
+
+                if ($attr_name == '#default_value' && $attr_value == '<user>') {
+                    $form[$table_name][$field_name][$attr_name] = $user->uid;
+                }
             }
 
         }
@@ -95,7 +100,7 @@ function build_form_for_table($title, $table_name, $fields)
         '#submit' => 'false',
         '#value' => t("Cancel"),
         //'#attributes' => array(
-        //   'onclick' => '$(this).parents("form").attr("allowSubmission", "false"); 
+        //   'onclick' => '$(this).parents("form").attr("allowSubmission", "false");
         //        window.location = "' .$base_path . 'bingo_adm";'),
     );*/
     return $form;
