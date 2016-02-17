@@ -1,19 +1,27 @@
 <?php
 function delete_record($table_name, $key_field, $field_value)
 {
-    try {
-        db_delete($table_name)
-            ->condition($key_field, $field_value)
-            ->execute();
-        drupal_set_message(t('Record has been deleted!'));
-    } catch (Exception $e) {
-        drupal_set_message($e->getMessage(), 'error');
+    if (user_access('access_to_' . $table_name . '_delete')) {
+        try {
+            db_delete($table_name)
+                ->condition($key_field, $field_value)
+                ->execute();
+            drupal_set_message(t('Record has been deleted!'));
+            return true;
+        } catch (Exception $e) {
+            drupal_set_message($e->getMessage(), 'error');
+            return false;
+        }
+    } else {
+        drupal_set_message(t('You are not authorized to access this page.'), 'error');
+        return false;
     }
 }
 
 function insert_update_table($table_name, $key_field, $fields_values, $action = 'add')
 {
     global $base_path;
+
     try {
 
         $query = db_select($table_name)->condition($key_field, $fields_values[$key_field]);
@@ -22,19 +30,28 @@ function insert_update_table($table_name, $key_field, $fields_values, $action = 
 
 
         if ($count > 0 && $action == 'edit') {
-
-            db_update($table_name)
-                ->fields($fields_values)
-                ->condition($key_field, $fields_values[$key_field])
-                ->execute();
-            drupal_set_message(t('Record has been updated!'));
+            if (user_access('access_to_' . $table_name . '_update')) {
+                db_update($table_name)
+                    ->fields($fields_values)
+                    ->condition($key_field, $fields_values[$key_field])
+                    ->execute();
+                drupal_set_message(t('Record has been updated!'));
+                return true;
+            } else {
+                drupal_set_message(t('You are not authorized to access this page.'), 'error');
+                return false;
+            }
         } else {
-
-            $id = db_insert($table_name)
-                ->fields($fields_values)
-                ->execute();
-            drupal_set_message(t('New record has been added!'));
-            return true;
+            if (user_access('access_to_' . $table_name . '_insert')) {
+                $id = db_insert($table_name)
+                    ->fields($fields_values)
+                    ->execute();
+                drupal_set_message(t('New record has been added!'));
+                return true;
+            } else {
+                drupal_set_message(t('You are not authorized to access this page.'), 'error');
+                return false;
+            }
         }
 
     } catch (Exception $e) {
@@ -45,6 +62,7 @@ function insert_update_table($table_name, $key_field, $fields_values, $action = 
 
 function build_form_for_table($title, $table_name, $fields)
 {
+    global $user;
     $form = array();
     $form[$table_name] = array(
         '#type' => 'fieldset',
@@ -62,6 +80,10 @@ function build_form_for_table($title, $table_name, $fields)
 
             } else {
                 $form[$table_name][$field_name][$attr_name] = $attr_value;
+
+                if ($attr_name == '#default_value' && $attr_value == '<user>') {
+                    $form[$table_name][$field_name][$attr_name] = $user->uid;
+                }
             }
 
         }
@@ -78,7 +100,7 @@ function build_form_for_table($title, $table_name, $fields)
         '#submit' => 'false',
         '#value' => t("Cancel"),
         //'#attributes' => array(
-        //   'onclick' => '$(this).parents("form").attr("allowSubmission", "false"); 
+        //   'onclick' => '$(this).parents("form").attr("allowSubmission", "false");
         //        window.location = "' .$base_path . 'bingo_adm";'),
     );*/
     return $form;
@@ -157,6 +179,8 @@ function get_row($table_name, $fields, $key_field, $key_value)
 function get_rows($table_name, $fields, $key_field, $references = null)
 {
     global $base_path;
+    $upd_link = "";
+    $del_link = "";
 
     $select = db_select($table_name, 't')
         ->fields('t', $fields)
@@ -184,9 +208,19 @@ function get_rows($table_name, $fields, $key_field, $references = null)
             $row_cols[] = $filed_value;
         }
 
-        $row_cols[] = "<a href=\"" . $base_path . "bingo_adm/forms?table_name=$table_name&action=edit&key_field=$key_field&value=" . $row->$key_field . "\">" . t("Edit") . "</a>&nbsp;|&nbsp;" .
-            "<a onclick=\"return confirm('" . t('Are you sure you want to delete this record?') . "');\" href=\"" . $base_path . "bingo_adm/tables?table_name=$table_name&action=delete&$key_field=" . $row->$key_field . "\">" . t("Delete") . "</a>";
+        if (user_access('access_to_' . $table_name . '_update')) {
+            $upd_link = "<a href=\"" . $base_path . "bingo_adm/forms?table_name=$table_name&action=edit&key_field=$key_field&value=" . $row->$key_field . "\">" . t("Edit") . "</a>";
+        }
+        if (user_access('access_to_' . $table_name . '_delete')) {
+            $del_link = "<a onclick=\"return confirm('" . t('Are you sure you want to delete this record?') . "');\" href=\"" . $base_path . "bingo_adm/tables?table_name=$table_name&action=delete&$key_field=" . $row->$key_field . "\">" . t("Delete") . "</a>";
+        }
 
+        if (strlen($upd_link . $del_link) > 0) {
+            if (strlen($upd_link) > 0 && strlen($del_link) > 0) {
+                $upd_link .= "&nbsp;|&nbsp;";
+            }
+            $row_cols[] = $upd_link . $del_link;
+        }
 
         $rows[] = $row_cols;
     }
@@ -194,7 +228,7 @@ function get_rows($table_name, $fields, $key_field, $references = null)
 }
 
 
-function build_headers_for_data_table($fields)
+function build_headers_for_data_table($table_name, $fields)
 {
     $header = array();
 
@@ -202,7 +236,10 @@ function build_headers_for_data_table($fields)
         $header[] = array('data' => t($field_name), 'class' => '', 'datatable_options' => array('bSortable' => TRUE, 'bSearchable' => TRUE));
     }
 
-    $header[] = array('data' => t('Options'), 'class' => '', 'datatable_options' => array('bSortable' => FALSE, 'bSearchable' => FALSE));
+    if (user_access('access_to_' . $table_name . '_update') || user_access('access_to_' . $table_name . '_delete')) {
+        $header[] = array('data' => t('Options'), 'class' => '', 'datatable_options' => array('bSortable' => FALSE, 'bSearchable' => FALSE));
+    }
+
 
     return $header;
 }
