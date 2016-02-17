@@ -188,10 +188,15 @@ function bingo_adm_forms()
         $table_name = $_REQUEST['table_name'];
     }
 
-    if (!user_access('access_to_' . $table_name . '_insert') || !user_access('access_to_' . $table_name . '_update')) {
+    if (!user_access('access_to_' . $table_name . '_insert')) {
         drupal_set_message(t('You are not authorized to access this page.'), 'error');
         return t('You are not authorized to access this page.');
-    } //- See more at: http://www.webomelette.com/define-check-custom-permission-drupal-7#sthash.vszHIVAJ.dpuf
+    }
+    
+    if (!user_access('access_to_' . $table_name . '_update')) {
+        drupal_set_message(t('You are not authorized to access this page.'), 'error');
+        return t('You are not authorized to access this page.');
+    }
 
 
     $form = drupal_get_form('bingo_adm_form');
