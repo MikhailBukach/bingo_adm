@@ -188,24 +188,19 @@ function bingo_adm_forms()
         $table_name = $_REQUEST['table_name'];
     }
 
-    if (!user_access('access_to_' . $table_name . '_insert')) {
+    if (user_access('access_to_' . $table_name . '_insert') || user_access('access_to_' . $table_name . '_update')) {
+        $form = drupal_get_form('bingo_adm_form');
+
+        //$output = bingo_admin_link($table_name);
+        $output .= back_to_table_link($table_name);
+        $output .= drupal_render($form);
+
+        return $output;
+    } else {
         drupal_set_message(t('You are not authorized to access this page.'), 'error');
         return t('You are not authorized to access this page.');
     }
-    
-    if (!user_access('access_to_' . $table_name . '_update')) {
-        drupal_set_message(t('You are not authorized to access this page.'), 'error');
-        return t('You are not authorized to access this page.');
-    }
 
-
-    $form = drupal_get_form('bingo_adm_form');
-
-    //$output = bingo_admin_link($table_name);
-    $output .= back_to_table_link($table_name);
-    $output .= drupal_render($form);
-
-    return $output;
 }
 
 function bingo_adm_form($form, &$form_state)
